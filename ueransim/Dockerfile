@@ -1,4 +1,4 @@
-FROM gcc:9.4.0 AS builder
+FROM gcc:12-bullseye AS builder
 
 LABEL maintainer="Free5GC <support@free5gc.org>"
 
@@ -22,10 +22,12 @@ FROM bitnami/minideb:bullseye
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install runtime dependencies + ping
-RUN apt-get update \
-    && apt-get install libsctp-dev lksctp-tools iproute2 iputils-ping procps psmisc -y \
-    && apt-get clean
-
+FROM debian:bookworm-slim
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libsctp1 lksctp-tools iproute2 iputils-ping procps psmisc iperf3 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+    
 WORKDIR /ueransim
 
 RUN mkdir -p config/ binder/
