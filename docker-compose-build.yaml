@@ -7,7 +7,7 @@ services:
       context: ./nf_upf
       args:
         DEBUG_TOOLS: "false"
-    command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"
+    command: bash -c "./upf-iptables.sh && apt-get update && apt-get install -y tcpdump && ./upf -c ./config/upfcfg.yaml"
     volumes:
       - ./config/upfcfg.yaml:/free5gc/config/upfcfg.yaml
       - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
@@ -24,7 +24,7 @@ services:
       context: ./nf_upf
       args:
         DEBUG_TOOLS: "false"
-    command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg2.yaml"
+    command:   bash -c "./upf-iptables.sh && apt-get update && apt-get install -y tcpdump && ./upf -c ./config/upfcfg2.yaml"
     volumes:
       - ./config/upfcfg2.yaml:/free5gc/config/upfcfg2.yaml
       - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
@@ -177,6 +177,7 @@ services:
     depends_on:
       - free5gc-nrf
       - free5gc-upf
+      # - free5gc-upf2
 
   free5gc-smf2:
     container_name: smf2
@@ -184,12 +185,12 @@ services:
       context: ./nf_smf
       args:
         DEBUG_TOOLS: "false"
-    command: ./smf -c ./config/smfcfg2.yaml -u ./config/uerouting.yaml
+    command: ./smf -c ./config/smfcfg2.yaml -u ./config/uerouting2.yaml
     expose:
       - "8000"
     volumes:
       - ./config/smfcfg2.yaml:/free5gc/config/smfcfg2.yaml
-      - ./config/uerouting.yaml:/free5gc/config/uerouting.yaml
+      - ./config/uerouting2.yaml:/free5gc/config/uerouting2.yaml
       - ./cert:/free5gc/cert
     environment:
       GIN_MODE: release
@@ -379,6 +380,27 @@ services:
     depends_on:
       - free5gc-amf
       - free5gc-upf
+      # - free5gc-upf2
+
+  ueransim2:
+    container_name: ueransim2
+    build:
+      context: ./ueransim
+    command: ./nr-gnb -c ./config/gnbcfg2.yaml
+    volumes:
+      - ./config/gnbcfg2.yaml:/ueransim/config/gnbcfg2.yaml
+      - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - "/dev/net/tun"
+    networks:
+      privnet:
+        aliases:
+          - gnb2.free5gc.org
+    depends_on:
+      - free5gc-amf
+      - free5gc-upf2
 
   # n3iwue:
   #   container_name: n3iwue

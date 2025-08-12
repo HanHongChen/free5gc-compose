@@ -21,8 +21,8 @@ gtpu:
 
 # The DNN list supported by UPF
 dnnList:
-  - dnn: internet # Data Network Name
-    cidr: 10.62.0.0/16 # Classless Inter-Domain Routing for assigned IPv4 pool of UE
+  - dnn: internet1 # Data Network Name
+    cidr: 10.63.0.0/16 # Classless Inter-Domain Routing for assigned IPv4 pool of UE
     # natifname: eth0
 
 

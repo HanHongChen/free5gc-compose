@@ -22,6 +22,7 @@ imeiSv: "4370816125816151"
 gnbSearchList:
   - 127.0.0.1
   - gnb.free5gc.org
+  - gnb2.free5gc.org
 
 # UAC Access Identities Configuration
 uacAic:
@@ -43,27 +44,19 @@ sessions:
     apn: "internet"
     slice:
       sst: 0x01
-      sd: 0x010203
+      sd: 0x000001
   - type: "IPv4"
-    apn: "internet"
+    apn: "internet1"
     slice:
       sst: 0x01
-      sd: 0x112233
-  - type: "IPv4"
-    apn: "internet"
-    slice:
-      sst: 0x01
-      sd: 0x102030
+      sd: 0x000002  
 
 # Configured NSSAI for this UE by HPLMN
 configured-nssai:
   - sst: 0x01
-    sd: 0x010203
+    sd: 0x000001
   - sst: 0x01
-    sd: 0x112233
-  - sst: 0x01
-    sd: 0x102030
-
+    sd: 0x000002
 # Default Configured NSSAI for this UE
 default-nssai:
   - sst: 1
