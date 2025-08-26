@@ -27,7 +27,7 @@ services:
     command:   bash -c "./upf-iptables.sh && apt-get update && apt-get install -y tcpdump && ./upf -c ./config/upfcfg2.yaml"
     volumes:
       - ./config/upfcfg2.yaml:/free5gc/config/upfcfg2.yaml
-      - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
+      - ./config/upf-iptables2.sh:/free5gc/upf-iptables.sh
     cap_add:
       - NET_ADMIN
     networks:
@@ -365,12 +365,17 @@ services:
     container_name: ueransim
     build:
       context: ./ueransim
-    command: ./nr-gnb -c ./config/gnbcfg.yaml
+    command: bash -c "apt-get update && apt-get install -y tcpdump && ./mptcpd.sh && exec ./nr-gnb -c ./config/gnbcfg.yaml" #./nr-gnb -c ./config/gnbcfg.yaml 
+    # git build-essential pkg-config m4 autoconf automake libtool autoconf-archive gettext libtool-bin
     volumes:
       - ./config/gnbcfg.yaml:/ueransim/config/gnbcfg.yaml
       - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
+      - ./env_setup/mptcpd.sh:/ueransim/mptcpd.sh
     cap_add:
       - NET_ADMIN
+    sysctls:
+      net.ipv4.conf.all.rp_filter: "2"
+      net.ipv4.conf.default.rp_filter: "2"
     devices:
       - "/dev/net/tun"
     networks:
@@ -386,12 +391,15 @@ services:
     container_name: ueransim2
     build:
       context: ./ueransim
-    command: ./nr-gnb -c ./config/gnbcfg2.yaml
+    command: bash -c "apt-get update && apt-get install -y tcpdump && exec ./nr-gnb -c ./config/gnbcfg2.yaml" #./nr-gnb -c ./config/gnbcfg2.yaml
     volumes:
       - ./config/gnbcfg2.yaml:/ueransim/config/gnbcfg2.yaml
       - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
     cap_add:
       - NET_ADMIN
+    sysctls:
+      net.ipv4.conf.all.rp_filter: "2"
+      net.ipv4.conf.default.rp_filter: "2"
     devices:
       - "/dev/net/tun"
     networks:
