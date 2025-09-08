@@ -371,6 +371,8 @@ services:
       - ./config/gnbcfg.yaml:/ueransim/config/gnbcfg.yaml
       - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
       - ./env_setup/mptcpd.sh:/ueransim/mptcpd.sh
+      - ./env_setup/tc.sh:/ueransim/tc.sh
+      - ./env_setup/iperf.sh:/ueransim/iperf.sh
     cap_add:
       - NET_ADMIN
     sysctls:

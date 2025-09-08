@@ -1,3 +1,4 @@
+# don't need
 echo "100 pduA" | tee -a /etc/iproute2/rt_tables
 echo "200 pduB" | tee -a /etc/iproute2/rt_tables
 ip route add default dev uesimtun0 table pduA
