@@ -20,7 +20,6 @@ UE2_IP=$(sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress
 
 echo "UPF1_IP=${UPF1_IP}  UPF2_IP=${UPF2_IP} UE1_IP=${UE1_IP} UE2_IP=${UE2_IP}"
 
-# 插在最前面，確保優先於 Docker 自動加的那條 10.100.200.0/24 MASQUERADE
 # if src is upf1 and dst is interfaceA then nat
 sudo iptables -t nat -I POSTROUTING 1 -s ${UPF1_IP}/32 -o ${IF_A} -j MASQUERADE
 sudo iptables -t nat -I POSTROUTING 1 -s ${UPF2_IP}/32 -o ${IF_B} -j MASQUERADE

@@ -360,19 +360,39 @@ services:
     depends_on:
       - db
       - free5gc-nrf
+  tsctsf:
+    container_name: tsctsf
+    build:
+      context: ./nf_tsctsf
+    command: ./tsctsf -c ./config/tsctsfcfg.yaml
+    volumes:
+      - ./config/tsctsfcfg.yaml:/free5gc/config/tsctsfcfg.yaml
+    cap_add:
+      - NET_ADMIN
+    networks:
+      privnet:
+        ipv4_address: 10.100.200.50
+        aliases:
+          - tsctsf.free5gc.org
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      - free5gc-pcf
+      - free5gc-nrf
 
   ueransim:
     container_name: ueransim
     build:
       context: ./ueransim
-    command: bash -c "apt-get update && apt-get install -y tcpdump && ./mptcpd.sh && exec ./nr-gnb -c ./config/gnbcfg.yaml" #./nr-gnb -c ./config/gnbcfg.yaml 
-    # git build-essential pkg-config m4 autoconf automake libtool autoconf-archive gettext libtool-bin
+    command: bash -c "apt-get update && apt-get install -y tcpdump && exec ./nr-gnb -c ./config/gnbcfg.yaml" #./nr-gnb -c ./config/gnbcfg.yaml 
+    # command: bash -c "apt-get update && apt-get install -y tcpdump && ./mptcpd.sh && exec ./nr-gnb -c ./config/gnbcfg.yaml" #./nr-gnb -c ./config/gnbcfg.yaml 
     volumes:
       - ./config/gnbcfg.yaml:/ueransim/config/gnbcfg.yaml
       - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
-      - ./env_setup/mptcpd.sh:/ueransim/mptcpd.sh
-      - ./env_setup/tc.sh:/ueransim/tc.sh
+      # - ./env_setup/mptcpd.sh:/ueransim/mptcpd.sh
       - ./env_setup/iperf.sh:/ueransim/iperf.sh
+      - ../result:/ueransim/result
     cap_add:
       - NET_ADMIN
     sysctls:
@@ -384,6 +404,9 @@ services:
       privnet:
         aliases:
           - gnb.free5gc.org
+    ports:
+      - "7001:7001/udp"
+      - "7002:7002/udp"
     depends_on:
       - free5gc-amf
       - free5gc-upf
