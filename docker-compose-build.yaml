@@ -390,6 +390,7 @@ services:
     volumes:
       - ./config/gnbcfg.yaml:/ueransim/config/gnbcfg.yaml
       - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
+      - ./ueransim/ue:/ueransim/ue
       # - ./env_setup/mptcpd.sh:/ueransim/mptcpd.sh
       - ./env_setup/iperf.sh:/ueransim/iperf.sh
       - ../result:/ueransim/result
