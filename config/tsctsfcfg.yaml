@@ -1,0 +1,43 @@
+info:
+  version: 1.0.1
+  description: TSCTSF initial local configuration
+
+configuration:
+  tsctsfName: TSCTSF # the name of this TSCTSF
+  sbi: # Service-based interface information
+    scheme: http # the protocol for sbi (http or https)
+    registerIPv4: tsctsf.free5gc.org # IP used to register to NRF
+    bindingIPv4: tsctsf.free5gc.org  # IP used to bind the service
+    port: 8000              # port used to bind the service
+
+  nrfUri: http://nrf.free5gc.org:8000
+  pcfUri: http://pcf.free5gc.org:8000
+  serviceNameList:   # the SBI services provided by this PCF, refer to TS 29.507
+    - ntsctsf_qosandtscassistance # Ntsctsf_Qosandtscassistance service
+  mongodb:       # the mongodb connected by this PCF
+    name: free5gc                  # name of the mongodb
+    url: mongodb://localhost:27017 # a valid URL of the mongodb
+logger: # log output setting
+  enable: true # true or false
+  level: info # how detailed to output, value: trace, debug, info, warn, error, fatal, panic
+  reportCaller: false # enable the caller report or not, value: true or false
+
+routerInfo:
+  - upNodeId: upf1
+    ifMac: 08:00:27:90:a4:e5
+    ueIp: 192.168.56.10
+    port: 5201
+    mtu: 1500
+  - upNodeId: upf2
+    ifMac: 08:00:27:c5:f1:89
+    ueIp: 192.168.57.10
+    port: 5201
+    mtu: 1500
+
+detnetController:
+  scheme: http
+  ipv4: 140.113.208.90
+  port: 8181
+  user: onos 
+  password: rocks
+  uri: onos/detnet-controller/core-network/interface

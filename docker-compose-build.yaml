@@ -11,6 +11,7 @@ services:
     volumes:
       - ./config/upfcfg.yaml:/free5gc/config/upfcfg.yaml
       - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
+      - ./env_setup/tc_upf1.sh:/free5gc/tc_upf1.sh
     cap_add:
       - NET_ADMIN
     networks:
@@ -28,6 +29,7 @@ services:
     volumes:
       - ./config/upfcfg2.yaml:/free5gc/config/upfcfg2.yaml
       - ./config/upf-iptables2.sh:/free5gc/upf-iptables.sh
+      - ./env_setup/tc_upf2.sh:/free5gc/tc_upf2.sh
     cap_add:
       - NET_ADMIN
     networks:
@@ -392,8 +394,9 @@ services:
       - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
       - ./ueransim/ue:/ueransim/ue
       # - ./env_setup/mptcpd.sh:/ueransim/mptcpd.sh
-      - ./env_setup/iperf.sh:/ueransim/iperf.sh
       - ../result:/ueransim/result
+      # - ../dp-tcp:/ueransim/dp-tcp
+      - ../dp-udp:/ueransim/dp-udp
     cap_add:
       - NET_ADMIN
     sysctls:
@@ -405,9 +408,7 @@ services:
       privnet:
         aliases:
           - gnb.free5gc.org
-    ports:
-      - "7001:7001/udp"
-      - "7002:7002/udp"
+
     depends_on:
       - free5gc-amf
       - free5gc-upf
