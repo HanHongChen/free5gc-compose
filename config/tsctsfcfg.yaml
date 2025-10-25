@@ -24,12 +24,12 @@ logger: # log output setting
 
 routerInfo:
   - upNodeId: upf1
-    ifMac: 08:00:27:90:a4:e5
+    ifMac: 08:00:27:b7:52:5a
     ueIp: 192.168.56.10
     port: 5201
     mtu: 1500
   - upNodeId: upf2
-    ifMac: 08:00:27:c5:f1:89
+    ifMac: 08:00:27:3c:01:82
     ueIp: 192.168.57.10
     port: 5201
     mtu: 1500

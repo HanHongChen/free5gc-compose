@@ -1,0 +1,595 @@
+services:
+  free5gc-upf:
+    container_name: upf
+    build:
+      context: ./nf_upf
+      args:
+        DEBUG_TOOLS: "false"
+    command: bash -c "./upf-iptables.sh && apt-get update && apt-get install -y tcpdump && ./upf -c ./config/upfcfg.yaml"
+    volumes:
+      - ./config/upfcfg.yaml:/free5gc/config/upfcfg.yaml
+      - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
+      - ./env_setup/tc_upf1.sh:/free5gc/tc_upf1.sh
+    cap_add:
+      - NET_ADMIN
+    networks:
+      sbi:
+        aliases:
+          - upf.free5gc.org
+      cn-rans:
+        ipv4_address: 10.0.1.5
+        aliases:
+          - n3.free5gc.org
+
+
+  free5gc-upf2:
+    container_name: upf2
+    build:
+      context: ./nf_upf
+      args:
+        DEBUG_TOOLS: "false"
+    command:   bash -c "./upf-iptables.sh && apt-get update && apt-get install -y tcpdump && ./upf -c ./config/upfcfg2.yaml"
+    volumes:
+      - ./config/upfcfg2.yaml:/free5gc/config/upfcfg2.yaml
+      - ./config/upf-iptables2.sh:/free5gc/upf-iptables.sh
+      - ./env_setup/tc_upf2.sh:/free5gc/tc_upf2.sh
+    cap_add:
+      - NET_ADMIN
+    networks:
+      sbi:
+        aliases:
+          - upf2.free5gc.org
+      cn-rans:
+        ipv4_address: 10.0.1.6
+        aliases:
+          - n3.sec.free5gc.org
+
+
+  db:
+    container_name: mongodb
+    image: mongo:3.6.8
+    command: mongod --port 27017
+    expose:
+      - "27017"
+    volumes:
+      - dbdata:/data/db
+    networks:
+      sbi:
+        aliases:
+          - db.free5gc.org
+
+
+  free5gc-nrf:
+    container_name: nrf
+    build:
+      context: ./nf_nrf
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./nrf -c ./config/nrfcfg.yaml
+    expose:
+      - "8000"
+    volumes:
+      - ./config/nrfcfg.yaml:/free5gc/config/nrfcfg.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      DB_URI: mongodb://db/free5gc
+      GIN_MODE: release
+    networks:
+      sbi:
+        aliases:
+          - nrf.free5gc.org
+    depends_on:
+      - db
+
+  free5gc-amf:
+    container_name: amf
+    build:
+      context: ./nf_amf
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./amf -c ./config/amfcfg.yaml
+    expose:
+      - "8000"
+    volumes:
+      - ./config/amfcfg.yaml:/free5gc/config/amfcfg.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      GIN_MODE: release
+    networks:
+      sbi:
+        aliases:
+          - amf.free5gc.org
+      cn-rans:
+        ipv4_address: 10.0.1.3
+        aliases:
+          - n2.free5gc.org
+    depends_on:
+      - free5gc-nrf
+
+  free5gc-ausf:
+    container_name: ausf
+    build:
+      context: ./nf_ausf
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./ausf -c ./config/ausfcfg.yaml
+    expose:
+      - "8000"
+    volumes:
+      - ./config/ausfcfg.yaml:/free5gc/config/ausfcfg.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      GIN_MODE: release
+    networks:
+      sbi:
+        aliases:
+          - ausf.free5gc.org
+    depends_on:
+      - free5gc-nrf
+
+  free5gc-nssf:
+    container_name: nssf
+    build:
+      context: ./nf_nssf
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./nssf -c ./config/nssfcfg.yaml
+    expose:
+      - "8000"
+    volumes:
+      - ./config/nssfcfg.yaml:/free5gc/config/nssfcfg.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      GIN_MODE: release
+    networks:
+      sbi:
+        aliases:
+          - nssf.free5gc.org
+    depends_on:
+      - free5gc-nrf
+
+  free5gc-pcf:
+    container_name: pcf
+    build:
+      context: ./nf_pcf
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./pcf -c ./config/pcfcfg.yaml
+    expose:
+      - "8000"
+    volumes:
+      - ./config/pcfcfg.yaml:/free5gc/config/pcfcfg.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      GIN_MODE: release
+    networks:
+      sbi:
+        aliases:
+          - pcf.free5gc.org
+    depends_on:
+      - free5gc-nrf
+
+  free5gc-smf:
+    container_name: smf
+    build:
+      context: ./nf_smf
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./smf -c ./config/smfcfg.yaml -u ./config/uerouting.yaml
+    expose:
+      - "8000"
+    volumes:
+      - ./config/smfcfg.yaml:/free5gc/config/smfcfg.yaml
+      - ./config/uerouting.yaml:/free5gc/config/uerouting.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      GIN_MODE: release
+    networks:
+      sbi:
+        aliases:
+          - smf.free5gc.org
+    depends_on:
+      - free5gc-nrf
+      - free5gc-upf
+      # - free5gc-upf2
+
+  free5gc-smf2:
+    container_name: smf2
+    build:
+      context: ./nf_smf
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./smf -c ./config/smfcfg2.yaml -u ./config/uerouting2.yaml
+    expose:
+      - "8000"
+    volumes:
+      - ./config/smfcfg2.yaml:/free5gc/config/smfcfg2.yaml
+      - ./config/uerouting2.yaml:/free5gc/config/uerouting2.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      GIN_MODE: release
+    networks:
+      sbi:
+        aliases:
+          - smf2.free5gc.org
+    depends_on:
+      - free5gc-nrf
+      - free5gc-upf2 
+
+  free5gc-udm:
+    container_name: udm
+    build:
+      context: ./nf_udm
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./udm -c ./config/udmcfg.yaml
+    expose:
+      - "8000"
+    volumes:
+      - ./config/udmcfg.yaml:/free5gc/config/udmcfg.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      GIN_MODE: release
+    networks:
+      sbi:
+        aliases:
+          - udm.free5gc.org
+    depends_on:
+      - db
+      - free5gc-nrf
+
+  free5gc-udr:
+    container_name: udr
+    build:
+      context: ./nf_udr
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./udr -c ./config/udrcfg.yaml
+    expose:
+      - "8000"
+    volumes:
+      - ./config/udrcfg.yaml:/free5gc/config/udrcfg.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      DB_URI: mongodb://db/free5gc
+      GIN_MODE: release
+    networks:
+      sbi:
+        aliases:
+          - udr.free5gc.org
+    depends_on:
+      - db
+      - free5gc-nrf
+
+  # free5gc-chf:
+  #   container_name: chf
+  #   build:
+  #     context: ./nf_chf
+  #     args:
+  #       DEBUG_TOOLS: "false"
+  #   command: ./chf -c ./config/chfcfg.yaml
+  #   expose:
+  #     - "8000"
+  #     - "2122"
+  #   volumes:
+  #     - ./config/chfcfg.yaml:/free5gc/config/chfcfg.yaml
+  #     - ./cert:/free5gc/cert
+  #   environment:
+  #     DB_URI: mongodb://db/free5gc
+  #     GIN_MODE: release
+  #   networks:
+  #     sbi:
+  #       aliases:
+  #         - chf.free5gc.org
+  #   depends_on:
+  #     - db
+  #     - free5gc-nrf
+  #     - free5gc-webui
+
+  # free5gc-n3iwf:
+  #   container_name: n3iwf
+  #   build:
+  #     context: ./nf_n3iwf
+  #     args:
+  #       DEBUG_TOOLS: "false"
+  #   command: ./n3iwf -c ./config/n3iwfcfg.yaml
+  #   volumes:
+  #     - ./config/n3iwfcfg.yaml:/free5gc/config/n3iwfcfg.yaml
+  #     - ./config/n3iwf-ipsec.sh:/free5gc/n3iwf-ipsec.sh
+  #   environment:
+  #     GIN_MODE: release
+  #   cap_add:
+  #     - NET_ADMIN
+  #   networks:
+  #     sbi:
+  #       ipv4_address: 10.100.200.15
+  #       aliases:
+  #         - n3iwf.free5gc.org
+  #   depends_on:
+  #     - free5gc-amf
+  #     - free5gc-smf
+  #     - free5gc-upf
+
+  # free5gc-tngf:
+  #   container_name: tngf
+  #   build:
+  #     context: ./nf_tngf
+  #     args:
+  #       DEBUG_TOOLS: "false"
+  #   command: ./tngf -c ./config/tngfcfg.yaml
+  #   volumes:
+  #     - ./config/tngfcfg.yaml:/free5gc/config/tngfcfg.yaml
+  #     - ./cert:/free5gc/cert
+  #   environment:
+  #     GIN_MODE: release
+  #   cap_add:
+  #     - NET_ADMIN
+  #   network_mode: host
+  #   depends_on:
+  #     - free5gc-amf
+  #     - free5gc-smf
+  #     - free5gc-upf
+
+  free5gc-nef:
+    container_name: nef
+    build:
+      context: ./nf_nef
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./nef -c ./config/nefcfg.yaml
+    expose:
+      - "8000"
+    volumes: 
+      - ./config/nefcfg.yaml:/free5gc/config/nefcfg.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      GIN_MODE: release
+    networks:
+      sbi:
+        aliases:
+          - nef.free5gc.org
+    depends_on:
+      - db
+      - free5gc-nrf
+
+  free5gc-webui:
+    container_name: webui
+    build:
+      context: ./webui
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./webui -c ./config/webuicfg.yaml
+    expose:
+      - "2121"
+    volumes:
+      - ./config/webuicfg.yaml:/free5gc/config/webuicfg.yaml
+    environment:
+      - GIN_MODE=release
+    networks:
+      sbi:
+        aliases:
+          - webui
+    ports:
+      - "5000:5000"
+      - "2122:2122"
+      - "2121:2121"
+    depends_on:
+      - db
+      - free5gc-nrf
+
+  tsctsf:
+    container_name: tsctsf
+    build:
+      context: ./nf_tsctsf
+    command: ./tsctsf -c ./config/tsctsfcfg.yaml
+    volumes:
+      - ./config/tsctsfcfg.yaml:/free5gc/config/tsctsfcfg.yaml
+    cap_add:
+      - NET_ADMIN
+    networks:
+      sbi:
+        # ipv4_address: 10.0.1.7
+        aliases:
+          - tsctsf.free5gc.org
+    ports:
+      - "8000:8000"
+    depends_on:
+      - free5gc-pcf
+      - free5gc-nrf
+
+  gnb-master:
+    container_name: gnb-master
+    image: free-ran-ue:latest
+    command: bash -c "apt-get update && apt-get install -y tcpdump tmux && exec ./free-ran-ue gnb -c gnbcfg.yaml"
+    volumes:
+      - ./config/gnbcfg-dc-dynamic-master.yaml:/free-ran-ue/gnbcfg.yaml
+    networks:
+      cn-rans:
+        ipv4_address: 10.0.1.2
+      mran-ue:
+        ipv4_address: 10.0.2.3
+      console-rans:
+        ipv4_address: 10.0.4.3
+    depends_on:
+      - free5gc-amf
+      - free5gc-ausf
+      - free5gc-nrf
+      - free5gc-nssf
+      - free5gc-pcf
+      - free5gc-smf
+      - free5gc-udm
+      - free5gc-udr
+      - free5gc-upf
+
+  gnb-secondary:
+    container_name: gnb-secondary
+    image: free-ran-ue:latest
+    command: bash -c "apt-get update && apt-get install -y tcpdump tmux && ./free-ran-ue gnb -c gnbcfg.yaml"
+    volumes:
+      - ./config/gnbcfg-dc-dynamic-secondary.yaml:/free-ran-ue/gnbcfg.yaml
+    networks:
+      cn-rans:
+        ipv4_address: 10.0.1.4
+      sran-ue:
+        ipv4_address: 10.0.3.3
+      console-rans:
+        ipv4_address: 10.0.4.5
+    depends_on:
+      - free5gc-amf
+      - free5gc-ausf
+      - free5gc-nrf
+      - free5gc-nssf
+      - free5gc-pcf
+      - free5gc-smf2
+      - free5gc-udm
+      - free5gc-udr
+      - free5gc-upf2
+  ue:
+    container_name: ue
+    image: free-ran-ue:latest
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - ./config/uecfg-dc-dynamic.yaml:/free-ran-ue/uecfg.yaml
+      - ../dp-udp:/ueransim/dp-udp
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    networks:
+      mran-ue:
+        ipv4_address: 10.0.2.2
+      sran-ue:
+        ipv4_address: 10.0.3.2
+    depends_on:
+      - gnb-master
+      - gnb-secondary
+
+
+  console:
+    container_name: fru-console
+    image: free-ran-ue:latest
+    command: ./free-ran-ue console -c consolecfg.yaml
+    volumes:
+      - ./config/fru-consolecfg.yaml:/free-ran-ue/consolecfg.yaml
+    networks:
+      console-rans:
+        ipv4_address: 10.0.4.2
+    ports:
+      - "40104:40104"
+    depends_on:
+      - gnb-master
+      - gnb-secondary
+
+networks:
+  sbi:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.10.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-sbi
+  cn-rans:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.1.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-cn-rans
+
+  mran-ue:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.2.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-mran-ue
+
+  sran-ue:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.3.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-sran-ue
+
+  console-rans:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.4.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-console-rans
+
+volumes:
+  dbdata:
+
+  # ueransim:
+  #   container_name: ueransim
+  #   build:
+  #     context: ./ueransim
+  #   command: bash -c "apt-get update && apt-get install -y tcpdump tmux &&  exec ./nr-gnb -c ./config/gnbcfg.yaml" #./nr-gnb -c ./config/gnbcfg.yaml 
+  #   # command: bash -c "apt-get update && apt-get install -y tcpdump && ./mptcpd.sh && exec ./nr-gnb -c ./config/gnbcfg.yaml" #./nr-gnb -c ./config/gnbcfg.yaml 
+  #   volumes:
+  #     - ./config/gnbcfg.yaml:/ueransim/config/gnbcfg.yaml
+  #     - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
+  #     - ./ueransim/ue:/ueransim/ue
+  #     # - ./env_setup/mptcpd.sh:/ueransim/mptcpd.sh
+  #     - ../result:/ueransim/result
+  #     # - ../dp-tcp:/ueransim/dp-tcp
+  #     - ../dp-udp:/ueransim/dp-udp
+  #   cap_add:
+  #     - NET_ADMIN
+  #   sysctls:
+  #     net.ipv4.conf.all.rp_filter: "2"
+  #     net.ipv4.conf.default.rp_filter: "2"
+  #   devices:
+  #     - "/dev/net/tun"
+  #   networks:
+  #     sbi:
+  #       aliases:
+  #         - gnb.free5gc.org
+  #   depends_on:
+  #     - free5gc-amf
+  #     - free5gc-upf
+
+  # ueransim2:
+  #   container_name: ueransim2
+  #   build:
+  #     context: ./ueransim
+  #   command: bash -c "apt-get update && apt-get install -y tcpdump && tail -f /dev/null" # exec ./nr-gnb -c ./config/gnbcfg2.yaml"
+  #   volumes:
+  #     - ./config/gnbcfg2.yaml:/ueransim/config/gnbcfg2.yaml
+  #     - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
+  #   cap_add:
+  #     - NET_ADMIN
+  #   sysctls:
+  #     net.ipv4.conf.all.rp_filter: "2"
+  #     net.ipv4.conf.default.rp_filter: "2"
+  #   devices:
+  #     - "/dev/net/tun"
+  #   networks:
+  #     sbi:
+  #       aliases:
+  #         - gnb2.free5gc.org
+  #   depends_on:
+  #     - free5gc-amf
+  #     - free5gc-upf2
+
+  # n3iwue:
+  #   container_name: n3iwue
+  #   build:
+  #     context: ./n3iwue
+  #   command: bash -c "ip route del default && ip route add default via 10.100.200.1 dev eth0 metric 203 && sleep infinity"
+  #   volumes:
+  #     - ./config/n3uecfg.yaml:/n3iwue/config/n3ue.yaml
+  #   cap_add:
+  #     - NET_ADMIN
+  #   devices:
+  #     - "/dev/net/tun"
+  #   networks:
+  #     sbi:
+  #       ipv4_address: 10.100.200.203
+  #       aliases:
+  #         - n3ue.free5gc.org
+  #   depends_on:
+  #     - free5gc-n3iwf
