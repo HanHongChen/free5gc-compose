@@ -1,9 +1,9 @@
 ue:
-  ranControlPlaneIp: "10.0.2.3"
-  ranDataPlaneIp: "10.0.2.3"
-  localDataPlaneIp: "10.0.2.2"
-  ran2DataPlaneIp: "10.0.3.3"
-  localDataPlane2Ip: "10.0.3.2"
+  ranControlPlaneIp: "10.0.20.3"
+  ranDataPlaneIp: "10.0.20.3"
+  localDataPlaneIp: "10.0.20.2"
+  ran2DataPlaneIp: "10.0.30.3"
+  localDataPlane2Ip: "10.0.30.2"
 
 
   ranControlPlanePort: 31413
@@ -46,11 +46,11 @@ ue:
   nrdc:
     enable: false
     dcRanDataPlane:
-      ip: "10.0.3.3"
+      ip: "10.0.30.3"
       port: 31414
-    dcLocalDataPlaneIp: "10.0.3.2"
+    dcLocalDataPlaneIp: "10.0.30.2"
 
   ueTunnelDevice: "ueTun"
 
 logger:
-  level: "trace" # error, warn, info, debug, trace
+  level: "info" # error, warn, info, debug, trace

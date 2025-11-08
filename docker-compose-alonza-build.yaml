@@ -10,6 +10,10 @@ services:
       - ./config/upfcfg.yaml:/free5gc/config/upfcfg.yaml
       - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
       - ./env_setup/tc_upf1.sh:/free5gc/tc_upf1.sh
+      - ../result:/free5gc/result
+    sysctls:
+      net.ipv4.conf.all.rp_filter: "0"
+      net.ipv4.conf.default.rp_filter: "0"
     cap_add:
       - NET_ADMIN
     networks:
@@ -17,7 +21,7 @@ services:
         aliases:
           - upf.free5gc.org
       cn-rans:
-        ipv4_address: 10.0.1.5
+        ipv4_address: 10.0.10.5
         aliases:
           - n3.free5gc.org
 
@@ -31,8 +35,9 @@ services:
     command:   bash -c "./upf-iptables.sh && apt-get update && apt-get install -y tcpdump && ./upf -c ./config/upfcfg2.yaml"
     volumes:
       - ./config/upfcfg2.yaml:/free5gc/config/upfcfg2.yaml
-      - ./config/upf-iptables2.sh:/free5gc/upf-iptables.sh
+      - ./config/upf-iptables.sh:/free5gc/upf-iptables.sh
       - ./env_setup/tc_upf2.sh:/free5gc/tc_upf2.sh
+      - ../result:/free5gc/result
     cap_add:
       - NET_ADMIN
     networks:
@@ -40,7 +45,7 @@ services:
         aliases:
           - upf2.free5gc.org
       cn-rans:
-        ipv4_address: 10.0.1.6
+        ipv4_address: 10.0.10.6
         aliases:
           - n3.sec.free5gc.org
 
@@ -100,7 +105,7 @@ services:
         aliases:
           - amf.free5gc.org
       cn-rans:
-        ipv4_address: 10.0.1.3
+        ipv4_address: 10.0.10.3
         aliases:
           - n2.free5gc.org
     depends_on:
@@ -191,7 +196,6 @@ services:
     depends_on:
       - free5gc-nrf
       - free5gc-upf
-      # - free5gc-upf2
 
   free5gc-smf2:
     container_name: smf2
@@ -261,74 +265,6 @@ services:
       - db
       - free5gc-nrf
 
-  # free5gc-chf:
-  #   container_name: chf
-  #   build:
-  #     context: ./nf_chf
-  #     args:
-  #       DEBUG_TOOLS: "false"
-  #   command: ./chf -c ./config/chfcfg.yaml
-  #   expose:
-  #     - "8000"
-  #     - "2122"
-  #   volumes:
-  #     - ./config/chfcfg.yaml:/free5gc/config/chfcfg.yaml
-  #     - ./cert:/free5gc/cert
-  #   environment:
-  #     DB_URI: mongodb://db/free5gc
-  #     GIN_MODE: release
-  #   networks:
-  #     sbi:
-  #       aliases:
-  #         - chf.free5gc.org
-  #   depends_on:
-  #     - db
-  #     - free5gc-nrf
-  #     - free5gc-webui
-
-  # free5gc-n3iwf:
-  #   container_name: n3iwf
-  #   build:
-  #     context: ./nf_n3iwf
-  #     args:
-  #       DEBUG_TOOLS: "false"
-  #   command: ./n3iwf -c ./config/n3iwfcfg.yaml
-  #   volumes:
-  #     - ./config/n3iwfcfg.yaml:/free5gc/config/n3iwfcfg.yaml
-  #     - ./config/n3iwf-ipsec.sh:/free5gc/n3iwf-ipsec.sh
-  #   environment:
-  #     GIN_MODE: release
-  #   cap_add:
-  #     - NET_ADMIN
-  #   networks:
-  #     sbi:
-  #       ipv4_address: 10.100.200.15
-  #       aliases:
-  #         - n3iwf.free5gc.org
-  #   depends_on:
-  #     - free5gc-amf
-  #     - free5gc-smf
-  #     - free5gc-upf
-
-  # free5gc-tngf:
-  #   container_name: tngf
-  #   build:
-  #     context: ./nf_tngf
-  #     args:
-  #       DEBUG_TOOLS: "false"
-  #   command: ./tngf -c ./config/tngfcfg.yaml
-  #   volumes:
-  #     - ./config/tngfcfg.yaml:/free5gc/config/tngfcfg.yaml
-  #     - ./cert:/free5gc/cert
-  #   environment:
-  #     GIN_MODE: release
-  #   cap_add:
-  #     - NET_ADMIN
-  #   network_mode: host
-  #   depends_on:
-  #     - free5gc-amf
-  #     - free5gc-smf
-  #     - free5gc-upf
 
   free5gc-nef:
     container_name: nef
@@ -388,7 +324,7 @@ services:
       - NET_ADMIN
     networks:
       sbi:
-        # ipv4_address: 10.0.1.7
+        # ipv4_address: 10.0.10.7
         aliases:
           - tsctsf.free5gc.org
     ports:
@@ -403,13 +339,17 @@ services:
     command: bash -c "apt-get update && apt-get install -y tcpdump tmux && exec ./free-ran-ue gnb -c gnbcfg.yaml"
     volumes:
       - ./config/gnbcfg-dc-dynamic-master.yaml:/free-ran-ue/gnbcfg.yaml
+      - ../result:/free-ran-ue/result
+    sysctls:
+      net.ipv4.conf.all.rp_filter: "0"
+      net.ipv4.conf.default.rp_filter: "0"
     networks:
       cn-rans:
-        ipv4_address: 10.0.1.2
+        ipv4_address: 10.0.10.2
       mran-ue:
-        ipv4_address: 10.0.2.3
+        ipv4_address: 10.0.20.3
       console-rans:
-        ipv4_address: 10.0.4.3
+        ipv4_address: 10.0.40.3
     depends_on:
       - free5gc-amf
       - free5gc-ausf
@@ -427,13 +367,17 @@ services:
     command: bash -c "apt-get update && apt-get install -y tcpdump tmux && ./free-ran-ue gnb -c gnbcfg.yaml"
     volumes:
       - ./config/gnbcfg-dc-dynamic-secondary.yaml:/free-ran-ue/gnbcfg.yaml
+      - ../result:/free-ran-ue/result
+    sysctls:
+      net.ipv4.conf.all.rp_filter: "0"
+      net.ipv4.conf.default.rp_filter: "0"
     networks:
       cn-rans:
-        ipv4_address: 10.0.1.4
+        ipv4_address: 10.0.10.4
       sran-ue:
-        ipv4_address: 10.0.3.3
+        ipv4_address: 10.0.30.3
       console-rans:
-        ipv4_address: 10.0.4.5
+        ipv4_address: 10.0.40.5
     depends_on:
       - free5gc-amf
       - free5gc-ausf
@@ -444,22 +388,34 @@ services:
       - free5gc-udm
       - free5gc-udr
       - free5gc-upf2
+
   ue:
     container_name: ue
     image: free-ran-ue:latest
-    command: ["tail", "-f", "/dev/null"]
+    command: bash -c "apt-get update && apt-get install -y tcpdump tmux traceroute && tail -f /dev/null"
     volumes:
       - ./config/uecfg-dc-dynamic.yaml:/free-ran-ue/uecfg.yaml
-      - ../dp-udp:/ueransim/dp-udp
+      - ../dp-udp:/free-ran-ue/dp-udp
+      - ../dp-tcp:/free-ran-ue/dp-tcp
+      - ../result:/free-ran-ue/result
     cap_add:
       - NET_ADMIN
     devices:
       - /dev/net/tun:/dev/net/tun
+    sysctls:
+      net.ipv4.conf.all.rp_filter: "0"
+      net.ipv4.conf.default.rp_filter: "0"
+      # net.core.rmem_max: "67108864"
+      # net.core.wmem_max: "67108864"
+      # net.core.rmem_default: "8388608"
+      # net.core.wmem_default: "8388608"
+      # net.ipv4.udp_rmem_min: "131072"
+      # net.ipv4.udp_wmem_min: "131072"
     networks:
       mran-ue:
-        ipv4_address: 10.0.2.2
+        ipv4_address: 10.0.20.2
       sran-ue:
-        ipv4_address: 10.0.3.2
+        ipv4_address: 10.0.30.2
     depends_on:
       - gnb-master
       - gnb-secondary
@@ -473,26 +429,26 @@ services:
       - ./config/fru-consolecfg.yaml:/free-ran-ue/consolecfg.yaml
     networks:
       console-rans:
-        ipv4_address: 10.0.4.2
+        ipv4_address: 10.0.40.2
     ports:
       - "40104:40104"
     depends_on:
       - gnb-master
-      - gnb-secondary
+      # - gnb-secondary
 
 networks:
   sbi:
     ipam:
       driver: default
       config:
-        - subnet: 10.0.10.0/24
+        - subnet: 10.100.200.0/24
     driver_opts:
       com.docker.network.bridge.name: br-sbi
   cn-rans:
     ipam:
       driver: default
       config:
-        - subnet: 10.0.1.0/24
+        - subnet: 10.0.10.0/24
     driver_opts:
       com.docker.network.bridge.name: br-cn-rans
 
@@ -500,7 +456,7 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 10.0.2.0/24
+        - subnet: 10.0.20.0/24
     driver_opts:
       com.docker.network.bridge.name: br-mran-ue
 
@@ -508,7 +464,7 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 10.0.3.0/24
+        - subnet: 10.0.30.0/24
     driver_opts:
       com.docker.network.bridge.name: br-sran-ue
 
@@ -516,80 +472,9 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 10.0.4.0/24
+        - subnet: 10.0.40.0/24
     driver_opts:
       com.docker.network.bridge.name: br-console-rans
 
 volumes:
   dbdata:
-
-  # ueransim:
-  #   container_name: ueransim
-  #   build:
-  #     context: ./ueransim
-  #   command: bash -c "apt-get update && apt-get install -y tcpdump tmux &&  exec ./nr-gnb -c ./config/gnbcfg.yaml" #./nr-gnb -c ./config/gnbcfg.yaml 
-  #   # command: bash -c "apt-get update && apt-get install -y tcpdump && ./mptcpd.sh && exec ./nr-gnb -c ./config/gnbcfg.yaml" #./nr-gnb -c ./config/gnbcfg.yaml 
-  #   volumes:
-  #     - ./config/gnbcfg.yaml:/ueransim/config/gnbcfg.yaml
-  #     - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
-  #     - ./ueransim/ue:/ueransim/ue
-  #     # - ./env_setup/mptcpd.sh:/ueransim/mptcpd.sh
-  #     - ../result:/ueransim/result
-  #     # - ../dp-tcp:/ueransim/dp-tcp
-  #     - ../dp-udp:/ueransim/dp-udp
-  #   cap_add:
-  #     - NET_ADMIN
-  #   sysctls:
-  #     net.ipv4.conf.all.rp_filter: "2"
-  #     net.ipv4.conf.default.rp_filter: "2"
-  #   devices:
-  #     - "/dev/net/tun"
-  #   networks:
-  #     sbi:
-  #       aliases:
-  #         - gnb.free5gc.org
-  #   depends_on:
-  #     - free5gc-amf
-  #     - free5gc-upf
-
-  # ueransim2:
-  #   container_name: ueransim2
-  #   build:
-  #     context: ./ueransim
-  #   command: bash -c "apt-get update && apt-get install -y tcpdump && tail -f /dev/null" # exec ./nr-gnb -c ./config/gnbcfg2.yaml"
-  #   volumes:
-  #     - ./config/gnbcfg2.yaml:/ueransim/config/gnbcfg2.yaml
-  #     - ./config/uecfg.yaml:/ueransim/config/uecfg.yaml
-  #   cap_add:
-  #     - NET_ADMIN
-  #   sysctls:
-  #     net.ipv4.conf.all.rp_filter: "2"
-  #     net.ipv4.conf.default.rp_filter: "2"
-  #   devices:
-  #     - "/dev/net/tun"
-  #   networks:
-  #     sbi:
-  #       aliases:
-  #         - gnb2.free5gc.org
-  #   depends_on:
-  #     - free5gc-amf
-  #     - free5gc-upf2
-
-  # n3iwue:
-  #   container_name: n3iwue
-  #   build:
-  #     context: ./n3iwue
-  #   command: bash -c "ip route del default && ip route add default via 10.100.200.1 dev eth0 metric 203 && sleep infinity"
-  #   volumes:
-  #     - ./config/n3uecfg.yaml:/n3iwue/config/n3ue.yaml
-  #   cap_add:
-  #     - NET_ADMIN
-  #   devices:
-  #     - "/dev/net/tun"
-  #   networks:
-  #     sbi:
-  #       ipv4_address: 10.100.200.203
-  #       aliases:
-  #         - n3ue.free5gc.org
-  #   depends_on:
-  #     - free5gc-n3iwf
