@@ -1,0 +1,1 @@
+./free-ran-ue ue -c uecfg.yaml

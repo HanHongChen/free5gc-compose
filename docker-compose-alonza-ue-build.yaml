@@ -338,7 +338,7 @@ services:
     image: free-ran-ue:latest
     command: bash -c "apt-get update && apt-get install -y tcpdump tmux && exec ./free-ran-ue gnb -c gnbcfg.yaml"
     volumes:
-      - ./config/gnbcfg-dc-dynamic-master.yaml:/free-ran-ue/gnbcfg.yaml
+      - ./config/gnbcfg-dc-dynamic-master-thesis.yaml:/free-ran-ue/gnbcfg.yaml
       - ../result:/free-ran-ue/result
     sysctls:
       net.ipv4.conf.all.rp_filter: "0"
@@ -346,10 +346,13 @@ services:
     networks:
       cn-rans:
         ipv4_address: 10.0.10.2
-      mran-ue:
-        ipv4_address: 10.0.20.3
+      # mran-ue:
+      #   ipv4_address: 10.0.20.3
       console-rans:
         ipv4_address: 10.0.40.3
+    ports:
+      - "31413:31413"
+      - "31414:31414/udp"
     depends_on:
       - free5gc-amf
       - free5gc-ausf
@@ -366,7 +369,7 @@ services:
     image: free-ran-ue:latest
     command: bash -c "apt-get update && apt-get install -y tcpdump tmux && ./free-ran-ue gnb -c gnbcfg.yaml"
     volumes:
-      - ./config/gnbcfg-dc-dynamic-secondary.yaml:/free-ran-ue/gnbcfg.yaml
+      - ./config/gnbcfg-dc-dynamic-secondary-thesis.yaml:/free-ran-ue/gnbcfg.yaml
       - ../result:/free-ran-ue/result
     sysctls:
       net.ipv4.conf.all.rp_filter: "0"
@@ -374,10 +377,13 @@ services:
     networks:
       cn-rans:
         ipv4_address: 10.0.10.4
-      sran-ue:
-        ipv4_address: 10.0.30.3
+      # sran-ue:
+      #   ipv4_address: 10.0.30.3
       console-rans:
         ipv4_address: 10.0.40.5
+    ports:
+      - "31415:31413"
+      - "31416:31414/udp"
     depends_on:
       - free5gc-amf
       - free5gc-ausf
@@ -389,38 +395,38 @@ services:
       - free5gc-udr
       - free5gc-upf2
 
-  ue:
-    container_name: ue
-    image: free-ran-ue:latest
-    command: bash -c "apt-get update && apt-get install -y tcpdump tmux traceroute && tail -f /dev/null"
-    volumes:
-      - ./config/uecfg-dc-dynamic.yaml:/free-ran-ue/uecfg.yaml
-      - ./config/ueRun.sh:/free-ran-ue/run.sh
-      - ./env_setup/ueTest.sh:/free-ran-ue/test.sh
-      - ../dp-udp:/free-ran-ue/dp-udp
-      - ../dp-tcp:/free-ran-ue/dp-tcp
-      - ../result:/free-ran-ue/result
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    sysctls:
-      net.ipv4.conf.all.rp_filter: "0"
-      net.ipv4.conf.default.rp_filter: "0"
-      # net.core.rmem_max: "67108864"
-      # net.core.wmem_max: "67108864"
-      # net.core.rmem_default: "8388608"
-      # net.core.wmem_default: "8388608"
-      # net.ipv4.udp_rmem_min: "131072"
-      # net.ipv4.udp_wmem_min: "131072"
-    networks:
-      mran-ue:
-        ipv4_address: 10.0.20.2
-      sran-ue:
-        ipv4_address: 10.0.30.2
-    depends_on:
-      - gnb-master
-      - gnb-secondary
+  # ue:
+  #   container_name: ue
+  #   image: free-ran-ue:latest
+  #   command: bash -c "apt-get update && apt-get install -y tcpdump tmux traceroute && tail -f /dev/null"
+  #   volumes:
+  #     - ./config/uecfg-dc-dynamic.yaml:/free-ran-ue/uecfg.yaml
+  #     - ./config/ueRun.sh:/free-ran-ue/run.sh
+  #     - ./env_setup/ueTest.sh:/free-ran-ue/test.sh
+  #     - ../dp-udp:/free-ran-ue/dp-udp
+  #     - ../dp-tcp:/free-ran-ue/dp-tcp
+  #     - ../result:/free-ran-ue/result
+  #   cap_add:
+  #     - NET_ADMIN
+  #   devices:
+  #     - /dev/net/tun:/dev/net/tun
+  #   sysctls:
+  #     net.ipv4.conf.all.rp_filter: "0"
+  #     net.ipv4.conf.default.rp_filter: "0"
+  #     # net.core.rmem_max: "67108864"
+  #     # net.core.wmem_max: "67108864"
+  #     # net.core.rmem_default: "8388608"
+  #     # net.core.wmem_default: "8388608"
+  #     # net.ipv4.udp_rmem_min: "131072"
+  #     # net.ipv4.udp_wmem_min: "131072"
+  #   networks:
+  #     mran-ue:
+  #       ipv4_address: 10.0.20.2
+  #     sran-ue:
+  #       ipv4_address: 10.0.30.2
+  #   depends_on:
+  #     - gnb-master
+  #     - gnb-secondary
 
 
   console:
@@ -454,21 +460,21 @@ networks:
     driver_opts:
       com.docker.network.bridge.name: br-cn-rans
 
-  mran-ue:
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.0.20.0/24
-    driver_opts:
-      com.docker.network.bridge.name: br-mran-ue
+  # mran-ue:
+  #   ipam:
+  #     driver: default
+  #     config:
+  #       - subnet: 10.0.20.0/24
+  #   driver_opts:
+  #     com.docker.network.bridge.name: br-mran-ue
 
-  sran-ue:
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.0.30.0/24
-    driver_opts:
-      com.docker.network.bridge.name: br-sran-ue
+  # sran-ue:
+  #   ipam:
+  #     driver: default
+  #     config:
+  #       - subnet: 10.0.30.0/24
+  #   driver_opts:
+  #     com.docker.network.bridge.name: br-sran-ue
 
   console-rans:
     ipam:
